@@ -35,3 +35,11 @@ bool isCongurent(node* n1, node* n2);
 
 // Merge the congurence classes of nodes n1 and n2.
 void merge(node* n1, node* n2);
+
+// Utility method to read nodes from a file.
+std::vector<node*> readNodesFromFile(std::string path);
+
+// Utility to read constraints and check if the contraints are satisfiable.
+// The constraints are equality and inequality constraints.
+// If unsatisfiable, return a possible conflict of constraints.
+void checkSatisfiability(std::string path);

@@ -2,6 +2,7 @@
 #include "congurenceClosure.hpp"
 
 #include <iostream>
+#include <fstream>
 
 std::string print(node* n) {
 	std::string out;
@@ -26,7 +27,7 @@ node* find(node* n) {
 	while (t) {
 		if (t == t->find) {
 			// self-representative
-			std::cout << "[DEBUG] Representative for " << print(n) << " = " << print(t) << std::endl;
+			// std::cout << "[DEBUG] Representative for " << print(n) << " = " << print(t) << std::endl;
 			return t;
 		}
 		t = t->find;
@@ -101,24 +102,149 @@ node* functionNode(std::string symbol, std::vector<node*> nodes) {
 	return n;
 }
 
+node* findNode(node* n, const std::vector<node*>& all_nodes) {
+	for (auto a : all_nodes) {
+		if (isCongurent(n, a)) return a;
+	}
+	return nullptr;
+}
+
+std::vector<node*> all_nodes;
+
+node* parseNode(char* s, int& pos) {
+	// Merge nodes to form a DAG of nodes.
+	std::string symbol;
+	node* n = nullptr;
+	while (s[pos] != '\0') {
+		// read character
+		char a = s[pos];
+
+		if (a == '(') {
+			// begining of a new function application.
+			n = functionNode(symbol, {});
+			while (s[pos] != ')') {
+				auto child = parseNode(s, ++pos);
+				n->children.push_back(child);
+				child->ccpar.push_back(n);
+
+				if (s[pos] == ',') pos++;
+			}
+			break;
+
+		}
+		if (a == ',') {
+			break;
+		}
+		if (a == ')') {
+			break;
+		}
+		if (a == ' ') {
+			break;
+		}
+		symbol.push_back(a);
+		pos++;
+	}
+	if (!n && symbol.size() > 0) {
+		// singleton node.
+		n =  singletonNode(symbol);
+	}
+	node* existing = findNode(n, all_nodes);
+	if (existing == nullptr) {
+		all_nodes.push_back(n);
+	}
+	else {
+		n = existing;
+	}
+	return n;
+}
+
+
+
+std::vector<node*> readNodesFromFile(std::string path) {
+	std::ifstream f(path);
+	if (!f.is_open()) return {};
+
+	std::vector<node*> nodes;
+	char s[1024];
+	while (!f.eof()) {
+		f.getline(s, 1024);
+
+		int pos = 0;
+		node* n = parseNode(s, pos);
+
+		if (n) {
+			nodes.push_back(n);
+		}
+	}
+
+	return nodes;
+}
+
+void checkSatisfiability(std::string path) {
+	std::ifstream f(path);
+
+	if (!f.is_open()) return;
+
+	std::vector<node*> nodes;
+	char s[1024];
+	while(!f.eof()) {
+		f.getline(s, 1024);
+
+		// each line is of the form x = y or x != y;
+		int pos = 0;
+
+		node* n1 = parseNode(s, pos);
+		pos++;
+
+		// skip spaces.
+		while (s[pos] != '\0' && s[pos] == ' ') pos++;
+
+		if (s[pos] == '=') {
+		
+			// equality found.
+			pos++;
+			while (s[pos] != '\0' && s[pos] == ' ') pos++;
+			node* n2 = parseNode(s, pos);
+			merge(n1, n2);
+		}
+		else if (s[pos] == '!' && s[pos+1] == '=') {
+			// inequality found.
+			pos++; pos++;
+			while (s[pos] != '\0' && s[pos] == ' ') pos++;
+			node* n2 = parseNode(s, pos);
+			if (find(n1) == find(n2) ) {
+				std::cout << "Conflict found: " << print(n1) << " is equivalent to " << print(n2) << std::endl;
+			}
+			return;
+		}
+	}
+}
 
 int main(int argc, char** argv) {
-	// construct a = f(f(f(a))) && f(f(f(f(f(a))))) = a.
-	node* a = singletonNode("a");
-	node* fa = functionNode("f", {a});
-	node* ffa = functionNode("f", {fa});
-	node* fffa = functionNode("f", {ffa});
-	node* ffffa = functionNode("f", {fffa});
-	node* fffffa = functionNode("f", {ffffa});
+	if (argc < 2) {
+		std::cout << "Usage: congurenceClosure <satisfiability file>" << std::endl;
+		return 0;
+	}
 
-	std::cout << "Merge " << print(a) << " and " << print(fffa) << std::endl;
-	merge(a, fffa);
-
-	std::cout << "Merge " << print(a) << " and " << print(fffffa) << std::endl;
-	merge(a, fffffa);
-
-	bool output = find(a) == find(fa);
-	std::cout << "Is f(a) == a? " << ((output)?"Yes":"No") << std::endl;
+	auto path  = argv[1];
+//	// construct a = f(f(f(a))) && f(f(f(f(f(a))))) = a.
+//	node* a = singletonNode("a");
+//	node* fa = functionNode("f", {a});
+//	node* ffa = functionNode("f", {fa});
+//	node* fffa = functionNode("f", {ffa});
+//	node* ffffa = functionNode("f", {fffa});
+//	node* fffffa = functionNode("f", {ffffa});
+//	std::cout << "Merge " << print(a) << " and " << print(fffa) << std::endl;
+//	merge(a, fffa);
+//
+//	std::cout << "Merge " << print(a) << " and " << print(fffffa) << std::endl;
+//	merge(a, fffffa);
+//
+//	bool output = find(a) == find(fa);
+//	std::cout << "Is f(a) == a? " << ((output)?"Yes":"No") << std::endl;
+//
+//	readNodesFromFile("sample.txt");
+	checkSatisfiability(argv[1]);
 
 	return 0;
 }
