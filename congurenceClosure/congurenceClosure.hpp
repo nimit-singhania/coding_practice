@@ -1,3 +1,11 @@
+// When nodes in a directed acyclic graph or DAG can represent equivalent nodes,
+// we would like to compute a closure of the equivalence relation so that all
+// equivalent nodes are merged. In particular, if the DAG encodes relations
+// on individual nodes, then we would like to merge parent nodes when they
+// consist of equivalent children nodes. The congurence closure algorithm allows
+// computing this equivalence between nodes and checking if two nodes are
+// equivalent with respect to the congurence relation.
+
 // This file defines the congurence closure algorithm that is an extension of the
 // union-find algorithm for sets. The congurence closure operates on a DAG that
 // represents an uninterpreted function application over expressions.
