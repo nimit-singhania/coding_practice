@@ -1,22 +1,23 @@
 #include "paidSearchAdvertising.hpp"	
 
 #include <iostream>
-
-std::vector<adListing*> paidSearchAdvertising::findListings(std::vector<std::string> keywords) {
-	std::vector<adListing*> match;
+std::map<adListing*, int> paidSearchAdvertising::findListings(std::vector<std::string> keywords) {
+	std::map<adListing*, int> matchWithCount;
 
 	for (auto l : listings) {
-		bool found = false;
 		for (auto k : keywords) {
 			if (l->title.find(k) != std::string::npos) {
 				// Mmatch found.
-				match.push_back(l);
-				found = true;
-				break;
+				if (matchWithCount.find(l) == matchWithCount.end()) {
+					matchWithCount.emplace(l, 1);
+				}
+				else {
+					matchWithCount[l]++;
+				}
 			}
 		}
 	}
-	return match;
+	return matchWithCount;
 }
 
 // Listing services.
@@ -56,29 +57,45 @@ int paidSearchAdvertising::computeFee(int seller, float adRate) {
 	return (int) fee;
 }
 // Ranking
-void paidSearchAdvertising::sortListings(std::vector<adListing*>& vec) {
+std::vector<AdListingWithMatchCount> paidSearchAdvertising::sortListings(std::map<adListing*, int>& vec) {
     // Sort listings by number of keywords matched.
-    // TODO
+	std::vector<AdListingWithMatchCount> sortedList;
+	for (auto p : vec) {
+		// std::cout << "DEBUG: " << p.first->title << ": " << p.second << std::endl;
+		sortedList.push_back(p);
+	}
+
+   	std::sort(sortedList.begin(), sortedList.end(), [](const AdListingWithMatchCount& a, const AdListingWithMatchCount& b) {
+			return a.second > b.second;
+			});
+
+	return sortedList;
 }
 
 
 int main(int argc, char** argv) {
 	paidSearchAdvertising adService;
 
-	adService.addListing(1, "computer table standing");
 	adService.addListing(1, "coffee table");
+	adService.addListing(1, "computer table standing");
 	adService.addListing(2, "computer table electric");
 
-	auto listings = adService.findListings({"computer"});
+	auto listings = adService.findListings({"computer", "table"});
 	for (auto l: listings) {
-		std::cout << "Listing title: " << l->title << std::endl;
+		std::cout << "Listing title: " << l.first->title << std::endl;
 	}
 
 	adService.removeListing(2, "computer table electric");
 	std::cout << "Removed listing: computer table electric " << std::endl;
-	listings = adService.findListings({"computer"});
+	listings = adService.findListings({"computer", "table"});
 	for (auto l: listings) {
-		std::cout << "Listing title: " << l->title << std::endl;
+		std::cout << "Listing title: " << l.first->title << std::endl;
+	}
+
+	std::cout << "Sorted Listings: " << std::endl;
+	auto sortedList = adService.sortListings(listings);
+	for (auto l: sortedList) {
+		std::cout << "Listing title: " << l.first->title << std::endl;
 	}
 
 	return 0;

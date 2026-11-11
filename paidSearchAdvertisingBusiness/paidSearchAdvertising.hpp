@@ -13,6 +13,8 @@
 //     cost per click: the fee is paid when a buyer clicks on the product.
 // We support cost per click model here. To support the model, we must maintain clicks on the products and compute fee based on the number of clicks (given by adrate).
 
+#include <algorithm>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -22,11 +24,14 @@ struct adListing {
 	int numberOfClicks;
 };
 
+typedef std::pair<adListing*, int> AdListingWithMatchCount;
+
 class paidSearchAdvertising {
 	std::vector<adListing*> listings;
 
 public:
-	std::vector<adListing*> findListings(std::vector<std::string> keywords);
+	// Returns matched adListings with count of keywords matched.
+	std::map<adListing*, int> findListings(std::vector<std::string> keywords);
 
 	// Listing services.
 	void addListing(int seller, std::string title);
@@ -38,5 +43,5 @@ public:
 	int computeFee(int seller, float adRate);
 
 	// Ranking
-	void sortListings(std::vector<adListing*>& vec);
+	std::vector<AdListingWithMatchCount> sortListings(std::map<adListing*, int>& vec);
 };
