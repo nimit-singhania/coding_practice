@@ -41,8 +41,7 @@ std::string getPath(std::string url) {
 
 class TmpNode: public node {
 public:
-	TmpNode(std::string domain) : node(domain) {}
-	// TODO support HTTPS retrieval.
+	TmpNode(std::string domain, bool isHttp = true) : node(domain, !isHttp) {}
 	std::string retrieveContent(std::string path) override {
 		return  domain + ": Retrieving contents for path: " + path + ".";
 	}
@@ -56,6 +55,12 @@ std::string worldWideWebService::retrieveContent(std::string url) {
 	std::string path = getPath(url);
 
 	if (DomainToHostMapping.find(domain) != DomainToHostMapping.end()) {
+
+		if (domain.find_first_of("https") != 0 && DomainToHostMapping[domain]->isHttps()) {
+			// Incompliant protocol.
+			return "";
+		}
+
 		return DomainToHostMapping[domain]->retrieveContent(path);
 	}
 
@@ -65,7 +70,7 @@ std::string worldWideWebService::retrieveContent(std::string url) {
 int main(int argc, char** argv) {
 	worldWideWebService www;
 
-	TmpNode n1("abc.com"), n2("xyz.com"), n3("pqr.com"), n4("def.com"), n5("jkl.com");
+	TmpNode n1("abc.com", false), n2("xyz.com"), n3("pqr.com"), n4("def.com"), n5("jkl.com");
 
 	www.addNode(n1.getDomain(), &n1);
 	www.addNode(n2.getDomain(), &n2);

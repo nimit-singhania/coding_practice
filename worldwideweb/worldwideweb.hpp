@@ -16,13 +16,17 @@
 class node {
 	protected:
 	std::string domain;
+	
+	bool is_https;
 
 	public:
-	node(std::string d) : domain(d) {}
+	node(std::string d, bool is_https) : domain(d), is_https(is_https) {}
 	
 	virtual std::string retrieveContent(std::string path) = 0;
 
 	std::string getDomain() { return domain; }
+
+	bool isHttps() { return is_https;}
 };
 
 
