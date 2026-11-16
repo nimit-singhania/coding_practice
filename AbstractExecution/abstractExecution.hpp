@@ -26,6 +26,8 @@
 // * GetNextExecutionUnit(): this returns the next instruction to be executed in the abstract engine.
 
 
+#include <algorithm>
+
 struct abstract_state;
 
 struct abstract_domain;
@@ -40,7 +42,7 @@ void ExecuteStatement(Instruction* I, abstract_state& st); // updates state in-p
 
 void MergeValues(Value* v1, Value* v2, abstract_state& st); // TODO
 
-Instruction* GetNextExecutionUnit();
+std::pair<Instruction*, abstract_state*> GetNextExecutionUnit();
 
 class abstract_execution_engine {
 	abstract_state* current_state;
