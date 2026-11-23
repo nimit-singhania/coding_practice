@@ -21,4 +21,9 @@
 // 7. The merged state in case of merge of two units, must represent and encompass both
 //       states that were merged together.
 // 8. The execution should ensure progress, and for specific analyses, guarantees on
-//       termination.
+//       termination should be provided.
+// 9. The abstract execution of a program should correspond to the actual execution of
+//       program via a simple abstraction.
+// 10. The trade-offs between the outcome of the abstract execution and the actual execution
+//       due to imprecision in libraries, operations and code complexity should be clearly
+//       spelled out.
